@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Media Control (Firefox)
 
 A toolbar button that opens a Chrome-style media panel: every tab that has played audio or video, with title, thumbnail, progress bar, previous / back 10s / play-pause / forward 10s / next.
@@ -29,3 +30,6 @@ Every time you change the code, raise `"version"` in `manifest.json` before uplo
 - **Previous / next track** only work on sites that provide them (YouTube playlists, YouTube Music, Spotify Web, etc.). Otherwise those buttons are greyed out. Back/forward 10s always work.
 - Tabs with a camera/call stream (WebRTC) are ignored, and so are pages that haven't played anything yet.
 - Firefox 128 or newer is required.
+=======
+# Media-Control-for-Firefox
+>>>>>>> 43f4f543d1b4523dc4e1947ee571b3c33dd37a3f
