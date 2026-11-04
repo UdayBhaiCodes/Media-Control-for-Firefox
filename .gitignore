@@ -1,3 +1,6 @@
+# Temp Files
+message.txt
+
 # Build output and local tooling
 node_modules/
 web-ext-artifacts/
