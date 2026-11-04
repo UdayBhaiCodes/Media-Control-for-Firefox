@@ -1,7 +1,7 @@
 (() => {
   'use strict';
   // Must match manifest.json. Lets the popup tell when a tab is still running an older copy of this script.
-  const BUILD = '1.0.9';
+  const BUILD = '1.1.1';
 
   // Spotify's web player doesn't give extensions usable media-session controls or a reliable
   // duration, so on open.spotify.com the player bar on the page is used instead.
