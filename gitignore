@@ -1,0 +1,10 @@
+# Build output and local tooling
+node_modules/
+web-ext-artifacts/
+*.xpi
+
+# OS / editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

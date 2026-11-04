@@ -1,8 +1,10 @@
 {
   "manifest_version": 3,
   "name": "Media Control",
-  "version": "1.0.9",
+  "version": "1.1.1",
   "description": "Chrome-style media controls for every tab playing audio or video.",
+  "author": "Udoy Mitra",
+  "homepage_url": "https://github.com/UdayBhaiCodes/Media-Control-for-Firefox",
   "browser_specific_settings": {
     "gecko": {
       "id": "media-control@personal.local",

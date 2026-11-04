@@ -87,7 +87,7 @@ Firefox only keeps *signed* extensions after a restart.
 
 This lasts until you close Firefox. It is the fastest way to try the extension.
 
-1. [Download this repository](../../archive/refs/heads/main.zip) and unzip it.
+1. [Download this repository](../../archive/refs/heads/main.zip) and unzip it (or run `git clone https://github.com/UdayBhaiCodes/Media-Control-for-Firefox.git`).
 2. In Firefox, open `about:debugging#/runtime/this-firefox`.
 3. Click **Load Temporary Add-on…** and choose the `manifest.json` file from the folder.
 
@@ -210,6 +210,7 @@ flowchart LR
 ```
 media-control/
 ├── manifest.json            Manifest V3
+├── README.md · LICENSE
 ├── content/
 │   ├── main-world.js        runs inside the page: finds media, reads metadata, controls playback
 │   └── bridge.js            relays messages between the page and the extension
@@ -268,11 +269,11 @@ Contributions are welcome. The project has **no build step and no dependencies**
 
 ## 📄 License
 
-[MIT](LICENSE) © Media Control contributors
+[MIT](LICENSE) © 2026 Udoy Mitra
 
 ---
 
 <p align="center">
-  Made because Firefox deserves a proper media button. 🎵<br>
+  Made by <a href="https://github.com/UdayBhaiCodes">@UdayBhaiCodes</a> because Firefox deserves a proper media button. 🎵<br>
   If it saves you from hunting for the noisy tab, a ⭐ on the repo is much appreciated.
 </p>
