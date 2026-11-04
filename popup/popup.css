@@ -121,7 +121,7 @@ header > svg { width: 18px; height: 18px; fill: var(--accent); }
 .site { display: flex; align-items: center; gap: 6px; min-width: 0; font-size: 12px; margin-top: 2px; }
 .fav { flex: none; width: 14px; height: 14px; border-radius: 3px; }
 
-.card.paused .art { opacity: .75; }
+.card.paused .art { filter: brightness(.8); }
 
 .seek {
   display: flex;
