@@ -1,7 +1,7 @@
 (() => {
   'use strict';
   // Must match manifest.json. Lets the popup tell when a tab is still running an older copy of this script.
-  const BUILD = '1.1.1';
+  const BUILD = '1.1.2';
 
   // Spotify's web player doesn't give extensions usable media-session controls or a reliable
   // duration, so on open.spotify.com the player bar on the page is used instead.
@@ -54,7 +54,7 @@
   function track(el) {
     if (!meta.has(el)) {
       if (refs.length >= pruneAt) prune();
-      meta.set(el, { id: ++counter, active: 0, attached: false });
+      meta.set(el, { id: ++counter, active: 0, attached: false, dv: 0, since: 0, good: 0, gsrc: '' });
       refs.push(new WeakRef(el));
     }
     return meta.get(el);
@@ -100,6 +100,25 @@
     if (e.target instanceof HTMLMediaElement) touch(e.target);
   }, true);
 
+  // Short history of player events, included in the debug report.
+  const log = [];
+  for (const type of ['durationchange', 'emptied', 'loadstart', 'ended', 'abort', 'error', 'seeking']) {
+    document.addEventListener(type, (e) => {
+      const el = e.target;
+      if (!(el instanceof HTMLMediaElement) || !meta.has(el)) return;
+      log.push({ at: Date.now() % 1e6, type, id: meta.get(el).id, d: el.duration, t: Math.round(el.currentTime * 10) / 10, src: (el.currentSrc || '').slice(0, 10) });
+      if (log.length > 40) log.shift();
+    }, true);
+  }
+
+  // Keeps the duration history up to date even while the popup is closed.
+  for (const type of ['durationchange', 'timeupdate']) {
+    document.addEventListener(type, (e) => {
+      const el = e.target;
+      if (el instanceof HTMLMediaElement && meta.has(el)) { try { realDuration(el); } catch (err) {} }
+    }, true);
+  }
+
   for (const type of ['pause', 'ended']) {
     document.addEventListener(type, (e) => {
       if (e.target instanceof HTMLMediaElement && meta.has(e.target)) touch(e.target);
@@ -132,12 +151,15 @@
   const isAudible = (el) => !el.muted && el.volume > 0;
   const isBackground = (el) => el.loop || (el.muted && el.duration < 15);
 
-  function pick(mid, skipBackground) {
+  // A card keeps following the same element (mid) so a page with several players (feeds, previews)
+  // cannot make it jump. Only a state refresh may move on, and only when the followed element
+  // is idle while another one is playing.
+  function pick(mid, skipBackground, follow) {
     const all = liveElements().filter((el) => !(skipBackground && isBackground(el)));
     if (!all.length) return null;
-    const found = mid != null && all.find((el) => meta.get(el).id === mid);
-    if (found) return found;
     const playing = all.filter((el) => !el.paused && !el.ended);
+    const found = mid != null && all.find((el) => meta.get(el).id === mid);
+    if (found && (!follow || playing.includes(found) || !playing.length)) return found;
     return (playing.length ? playing : all)
       .sort((a, b) => isAudible(b) - isAudible(a) || meta.get(b).active - meta.get(a).active)[0];
   }
@@ -147,18 +169,30 @@
     return parts.length > 1 && parts.every((n) => n >= 0) ? parts.reduce((a, n) => a * 60 + n, 0) : 0;
   }
 
-  // Streaming sites feed media in small pieces, so the element's own duration can be just
-  // the buffered part (a few seconds). Prefer the duration the site reports, then check the element's.
+  // A blob video whose duration equals what is buffered may just be a piece of a longer stream.
+  // A duration seen with room to spare is remembered, and is shown again whenever the player briefly
+  // reports something else (empty while it reloads, or a value cut to the buffer) for the same source.
   function realDuration(el) {
     if (position && el.currentTime <= position + 2) return position;
+    const m = meta.get(el);
+    const src = el.currentSrc;
     const d = el.duration;
+    const known = m && m.good && m.gsrc === src ? m.good : 0;
     if (d === Infinity) return Infinity;
-    if (!isFinite(d) || d <= 0) return null;
-    if (el.currentSrc.startsWith('blob:') && el.buffered.length) {
-      const end = el.buffered.end(el.buffered.length - 1);
-      if (Math.abs(d - end) < 0.75 && end - el.currentTime < 20) return null;
+    if (!isFinite(d) || d <= 0) return known || null;
+    const now = Date.now();
+    if (m && d !== m.dv) { m.dv = d; m.since = now; }
+    if (!src.startsWith('blob:') || !el.buffered.length) {
+      if (m) { m.good = d; m.gsrc = src; }
+      return d;
     }
-    return d;
+    const end = el.buffered.end(el.buffered.length - 1);
+    if (!(Math.abs(d - end) < 0.75 && end - el.currentTime < 20)) {
+      if (m) { m.good = d; m.gsrc = src; }
+      return d;
+    }
+    if (known && known >= d - 0.75) return known;
+    return m && now - m.since > 12000 ? d : null;
   }
 
   function readMetadata() {
@@ -367,7 +401,7 @@
     }
     const out = {
       build: BUILD, url: location.href, top: window.top === window, elements, listed, tracked: refs.length,
-      handlers: Object.keys(handlers), positionState: position, metadata: readMetadata()
+      events: log, now: Date.now() % 1e6, handlers: Object.keys(handlers), positionState: position, metadata: readMetadata()
     };
     if (SP) {
       out.spotifySelectorsFound = {};
@@ -393,7 +427,7 @@
       if (state) return state;
       skipBackground = state === null; // player bar present but no song found: fall back, minus page decoration
     }
-    const el = pick(req.mid, skipBackground);
+    const el = pick(req.mid, skipBackground, req.cmd === 'state');
     if (!el) return null;
     switch (req.cmd) {
       case 'toggle': {

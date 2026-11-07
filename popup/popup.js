@@ -116,7 +116,7 @@ async function refresh() {
   refreshing = true;
   try {
     await Promise.all([...cards.values()].map(async (card) => {
-      const s = await ask(card.tab.id, card.frameId, { cmd: 'state' });
+      const s = await ask(card.tab.id, card.frameId, { cmd: 'state', mid: card.s && card.s.mid });
       if (s) { setState(card, s); return; }
       card.misses = (card.misses || 0) + 1;
       if (card.misses >= 2) {
