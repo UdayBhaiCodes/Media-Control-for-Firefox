@@ -5,7 +5,7 @@
   "description": "Chrome-style media controls for every tab playing audio or video.",
   "browser_specific_settings": {
     "gecko": {
-      "id": "media-control@personal.local",
+      "id": "udaymitraa@zohomail.in",
       "strict_min_version": "128.0",
       "data_collection_permissions": { "required": ["none"] }
     }
